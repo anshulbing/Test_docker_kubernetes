@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app-deployment
+  labels:
+    app: myapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: node-app
+        image: divyansh2301/node_app:v1
+        ports:
+        - containerPort: 3000
+        env:
+        - name: MONGO_URI
+          value: mongodb://localhost:27017/myapp
+          #value: mongodb://$(mongo_pod_ip):27017/myapp
+      - name: myapp-db
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: mongo_pod_ip
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        volumeMounts:
+        - name: myapp-db-storage
+          mountPath: /data/db
+      volumes:
+      - name: myapp-db-storage
+        persistentVolumeClaim:
+          claimName: myapp-db-pvc
+
